@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from textblob import TextBlob
+import re
 
 import config
 
@@ -106,19 +107,21 @@ class TweetAnalyzer():
     def clean_tweet(self, tweet):
         return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
 
-    def analyze_sentiment(self, tweet):
+    def analyze_sentiment_score(self, tweet):
         analysis_score = TextBlob(self.clean_tweet(tweet))
+        analysis_score = analysis_score.sentiment.polarity
         return analysis_score
 
-    def analyze_sentiment(self, tweet):
+    def analyze_sentiment_result(self, tweet):
+
         analysis_result = TextBlob(self.clean_tweet(tweet))
 
         if analysis_result.sentiment.polarity > 0:
-            return 1
+            return 'Good'
         elif analysis_result.sentiment.polarity == 0:
-            return 0
+            return '0'
         else:
-            return -1
+            return 'Bad'
 
     def tweets_to_data_frame(self, tweets):
         df = pd.DataFrame(
@@ -147,12 +150,8 @@ if __name__ == '__main__':
 
     df = tweet_analyzer.tweets_to_data_frame(tweets)
 
-    df['sentiment'] = np.array([tweet_analyzer.analyze_sentiment(tweet) for tweet in df['tweets']])
-
-
-
-
-
+    df['Sentiment Score'] = np.array([tweet_analyzer.analyze_sentiment_score(tweet) for tweet in df['Tweet']])
+    df['Sentiment Result'] = np.array([tweet_analyzer.analyze_sentiment_result(tweet) for tweet in df['Tweet']])
 
 
     df.to_json('Muskhistory.json')
