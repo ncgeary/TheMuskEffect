@@ -117,11 +117,11 @@ class TweetAnalyzer():
         analysis_result = TextBlob(self.clean_tweet(tweet))
 
         if analysis_result.sentiment.polarity > 0:
-            return 'Good'
+            return 'Positive'
         elif analysis_result.sentiment.polarity == 0:
             return '0'
         else:
-            return 'Bad'
+            return 'Negative'
 
     def tweets_to_data_frame(self, tweets):
         df = pd.DataFrame(
