@@ -7,7 +7,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from textblob import TextBlob
+from pymongo import MongoClient
 import re
+import json
 
 import config
 
@@ -144,7 +146,7 @@ if __name__ == '__main__':
     # Elon Musk Twitter ID = 44196397
     musk_id = '44196397' 
 
-    tweets = api.user_timeline(id=musk_id, count=100)
+    tweets = api.user_timeline(id=musk_id, count=1000)
     
     fetched_tweets_filename = "tweets.json"
 
@@ -156,6 +158,18 @@ if __name__ == '__main__':
 
     df.to_json('Muskhistory.json')
 
+    client = MongoClient(config.mongoaccess)
+    db = client.twitterdata
+
+    twitter = db['data']
+
+    with open('Muskhistory.json') as standing_data:
+        file_data = json.load(standing_data)
+
+    twitter.insert_one(file_data)
+    client.close()
+
+    print('x')
     # time_likes = pd.Series(data=df['likes'].values, index=df['Date'])
     # time_likes.plot(figsize=(16, 4), label="likes", legend=True)
 
@@ -165,7 +179,7 @@ if __name__ == '__main__':
 
     # print()
 
-#    twitter_streamer = TwitterStreamer()
-#    twitter_streamer.stream_tweets(fetched_tweets_filename, musk_id)
+    #twitter_streamer = TwitterStreamer()
+    #twitter_streamer.stream_tweets(fetched_tweets_filename, musk_id)
 
 
