@@ -155,21 +155,18 @@ if __name__ == '__main__':
     df['Sentiment Score'] = np.array([tweet_analyzer.analyze_sentiment_score(tweet) for tweet in df['Tweet']])
     df['Sentiment Result'] = np.array([tweet_analyzer.analyze_sentiment_result(tweet) for tweet in df['Tweet']])
 
-
     df.to_json('Muskhistory.json')
 
     client = MongoClient(config.mongoaccess)
-    db = client.twitterdata
+    db = client.twitterhistory
+    history = db['data']
 
-    twitter = db['data']
+    with open('Muskhistory.json') as Muskhistory:
+        file_data = json.load(Muskhistory)
 
-    with open('Muskhistory.json') as standing_data:
-        file_data = json.load(standing_data)
-
-    twitter.insert_one(file_data)
+    history.insert_one(file_data)
     client.close()
 
-    print('x')
     # time_likes = pd.Series(data=df['likes'].values, index=df['Date'])
     # time_likes.plot(figsize=(16, 4), label="likes", legend=True)
 
