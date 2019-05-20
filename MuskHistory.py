@@ -164,7 +164,20 @@ if __name__ == '__main__':
     with open('Muskhistory.json') as Muskhistory:
         file_data = json.load(Muskhistory)
 
-    history.insert_one(file_data)
+    # history.insert_one(file_data)
+    # history.update_one({
+    #     {"id": "5cd37f3370921d31bc017823"},
+    #     {$set:{
+    #         "Date":...,
+    #         "Tweet":...,
+    #         "Tweet_id":...,
+    #         "likes":...,
+    #         "retweets":...,
+    #         "Sentiment Score": ...,
+    #         "Sentiment Result": ...,
+    #     }}
+    # })
+
     client.close()
 
     # time_likes = pd.Series(data=df['likes'].values, index=df['Date'])
