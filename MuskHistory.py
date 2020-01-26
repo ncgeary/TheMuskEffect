@@ -1,3 +1,5 @@
+#%%
+# import seaborn
 from tweepy import API
 from tweepy import Cursor
 from tweepy.streaming import StreamListener
@@ -7,13 +9,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from textblob import TextBlob
-from pymongo import MongoClient
+# from pymongo import MongoClient
 import re
 import json
 
 import config
 
-
+#%%
 # # # # TWITTER CLIENT # # # #
 class TwitterClient():
     def __init__(self, twitter_user=None):
@@ -100,7 +102,7 @@ class TwitterListener(StreamListener):
             return False
         print(status)
 
-
+#%%
 class TweetAnalyzer():
     """
     Functionality for analyzing and categorizing content from tweets.
@@ -136,7 +138,7 @@ class TweetAnalyzer():
 
         return df
 
-
+#%%
 if __name__ == '__main__':
     twitter_client = TwitterClient()
     tweet_analyzer = TweetAnalyzer()
@@ -155,41 +157,34 @@ if __name__ == '__main__':
     df['Sentiment Score'] = np.array([tweet_analyzer.analyze_sentiment_score(tweet) for tweet in df['Tweet']])
     df['Sentiment Result'] = np.array([tweet_analyzer.analyze_sentiment_result(tweet) for tweet in df['Tweet']])
 
-    df.to_json('Muskhistory.json')
-
-    client = MongoClient(config.mongoaccess)
-    db = client.twitterhistory
-    history = db['data']
-
-    with open('Muskhistory.json') as Muskhistory:
-        file_data = json.load(Muskhistory)
-
-    # history.insert_one(file_data)
-    # history.update_one({
-    #     {"id": "5cd37f3370921d31bc017823"},
-    #     {$set:{
-    #         "Date":...,
-    #         "Tweet":...,
-    #         "Tweet_id":...,
-    #         "likes":...,
-    #         "retweets":...,
-    #         "Sentiment Score": ...,
-    #         "Sentiment Result": ...,
-    #     }}
-    # })
-
     client.close()
 
-    # time_likes = pd.Series(data=df['likes'].values, index=df['Date'])
-    # time_likes.plot(figsize=(16, 4), label="likes", legend=True)
+#%%
+time_likes = pd.Series(data=df['likes'].values, index=df['Date'])
+time_likes.plot(figsize=(16, 4), label="likes", legend=True)
 
-    # time_retweets = pd.Series(data=df['retweets'].values, index=df['Date'])
-    # time_retweets.plot(figsize=(16, 4), label="retweets", legend=True)
-    # plt.show()
+time_retweets = pd.Series(data=df['retweets'].values, index=df['Date'])
+time_retweets.plot(figsize=(16, 4), label="retweets", legend=True)
+plt.show()
 
-    # print()
+#%%
+import plotly.plotly as py
+import plotly.graph_objs as go
 
-    #twitter_streamer = TwitterStreamer()
-    #twitter_streamer.stream_tweets(fetched_tweets_filename, musk_id)
+# Create a trace
+likes = go.Scatter(
+    x=df['Data'],
+    y=df['likes']
+)
+
+retweets = go.Scatter(
+    x=df['Data'],
+    y=df['retweets']
+)
+
+data = [likes, retweets]
+
+py.iplot(data, filename='basic-line')
 
 
+#%%
