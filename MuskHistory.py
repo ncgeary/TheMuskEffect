@@ -1,4 +1,6 @@
 #%%
+from sklearn import preprocessing
+from sklearn.preprocessing import MinMaxScaler
 import yfinance as yf
 import plotly
 import plotly.express as px
@@ -218,28 +220,13 @@ ydata.reset_index().head()
 # %%
 #Joining Dataframes
 AllData = data.join(ydata, lsuffix='Date', rsuffix='Date').reset_index()
-AllData
+# AllData
 
 
 # %%
 #plotting
 
-
 fig = go.Figure()
-
-fig.add_trace(go.Scatter(
-    x=AllData.Date,
-    y=AllData['likes'],
-    name="Likes",
-    line_color='blue',
-    opacity=0.8))
-
-fig.add_trace(go.Scatter(
-    x=AllData.Date,
-    y=AllData['retweets'],
-    name="Retweets",
-    line_color='blue',
-    opacity=0.8))
 
 fig.add_trace(go.Scatter(
     x=AllData.Date,
@@ -257,8 +244,58 @@ fig.add_trace(go.Scatter(
 
 # Use date string to set xaxis range
 fig.update_layout(xaxis_range=['2019-12-30', '2020-1-25'],
-                  title_text="Elon's Likes vs Retweets")
+                  title_text="Elon's Sentiment Score vs Stock Price")
 fig.show()
+
+#%%
+scaler = MinMaxScaler()
+
+AllData['SIZE_likes'] = scaler.fit_transform(AllData['likes'].values.reshape(-1, 1))
+AllData['SIZE_retweets'] = scaler.fit_transform(
+    AllData['retweets'].values.reshape(-1, 1))
+AllData['SIZE_stock'] = scaler.fit_transform(
+    AllData['Close'].values.reshape(-1, 1))
+
+
+
+
+# %%
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(
+    x=AllData.Date,
+    y=AllData['Sentiment Score'],
+    name="Sentiment Score",
+    line_color='red',
+    opacity=0.8))
+
+fig.add_trace(go.Scatter(
+    x=AllData.Date,
+    y=AllData['SIZE_stock'],
+    name="Stock Price",
+    line_color='green',
+    opacity=0.8))
+
+fig.add_trace(go.Scatter(
+    x=AllData.Date,
+    y=AllData['SIZE_likes'],
+    name="Likes",
+    line_color='blue',
+    opacity=0.8))
+
+fig.add_trace(go.Scatter(
+    x=AllData.Date,
+    y=AllData['SIZE_retweets'],
+    name="Retweets",
+    line_color='grey',
+    opacity=0.8))
+
+# Use date string to set xaxis range
+fig.update_layout(xaxis_range=['2019-12-30', '2020-1-25'],
+                  title_text="Elon's Sentiment Score vs Stock Price, Likes, Retweets")
+fig.show()
+
 
 
 # %%
