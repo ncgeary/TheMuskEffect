@@ -1,5 +1,8 @@
 #%%
-# import seaborn
+import yfinance as yf
+import plotly
+import plotly.express as px
+import plotly.graph_objs as go
 from tweepy import API
 from tweepy import Cursor
 from tweepy.streaming import StreamListener
@@ -9,6 +12,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from textblob import TextBlob
+
 # from pymongo import MongoClient
 import re
 import json
@@ -157,7 +161,7 @@ if __name__ == '__main__':
     df['Sentiment Score'] = np.array([tweet_analyzer.analyze_sentiment_score(tweet) for tweet in df['Tweet']])
     df['Sentiment Result'] = np.array([tweet_analyzer.analyze_sentiment_result(tweet) for tweet in df['Tweet']])
 
-    client.close()
+    # client.close()
 
 #%%
 time_likes = pd.Series(data=df['likes'].values, index=df['Date'])
@@ -168,23 +172,93 @@ time_retweets.plot(figsize=(16, 4), label="retweets", legend=True)
 plt.show()
 
 #%%
-import plotly.plotly as py
-import plotly.graph_objs as go
+#plotting likes and retweets
 
-# Create a trace
-likes = go.Scatter(
-    x=df['Data'],
-    y=df['likes']
-)
+fig = go.Figure()
+fig.add_trace(go.Scatter(
+    x=df.Date,
+    y=df['likes'],
+    name="Likes",
+    line_color='deepskyblue',
+    opacity=0.8))
 
-retweets = go.Scatter(
-    x=df['Data'],
-    y=df['retweets']
-)
+fig.add_trace(go.Scatter(
+    x=df.Date,
+    y=df['retweets'],
+    name="Retweets",
+    line_color='dimgray',
+    opacity=0.8))
 
-data = [likes, retweets]
+# Use date string to set xaxis range
+fig.update_layout(xaxis_range=['2019-12-30', '2020-1-25'],
+                  title_text="Elon's Likes vs Retweets")
+fig.show()
 
-py.iplot(data, filename='basic-line')
+
+
+
+# %%
+#datetime to date for grouping
+
+data = df.copy()
+data['Date'] = data['Date'].dt.date
+
+
+# %%
+data = data.groupby('Date').agg(
+    {'likes': 'sum', 'retweets': 'sum', 'Sentiment Score': 'mean'})
+
+data.reset_index().head()
 
 
 #%%
+# Get the data of the stock Tesla Stock (TSLA)
+ydata = yf.download("TSLA", start="2020-1-1", end="2020-01-27")
+ydata.reset_index().head()
+# %%
+#Joining Dataframes
+AllData = data.join(ydata, lsuffix='Date', rsuffix='Date').reset_index()
+AllData
+
+
+# %%
+#plotting
+
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(
+    x=AllData.Date,
+    y=AllData['likes'],
+    name="Likes",
+    line_color='blue',
+    opacity=0.8))
+
+fig.add_trace(go.Scatter(
+    x=AllData.Date,
+    y=AllData['retweets'],
+    name="Retweets",
+    line_color='blue',
+    opacity=0.8))
+
+fig.add_trace(go.Scatter(
+    x=AllData.Date,
+    y=AllData['Sentiment Score'],
+    name="Sentiment Score",
+    line_color='red',
+    opacity=0.8))
+
+fig.add_trace(go.Scatter(
+    x=AllData.Date,
+    y=AllData['Close'],
+    name="Stock Price",
+    line_color='green',
+    opacity=0.8))
+
+# Use date string to set xaxis range
+fig.update_layout(xaxis_range=['2019-12-30', '2020-1-25'],
+                  title_text="Elon's Likes vs Retweets")
+fig.show()
+
+
+# %%
