@@ -263,12 +263,12 @@ AllData['SIZE_stock'] = scaler.fit_transform(
 
 fig = go.Figure()
 
-fig.add_trace(go.Scatter(
-    x=AllData.Date,
-    y=AllData['Sentiment Score'],
-    name="Sentiment Score",
-    line_color='red',
-    opacity=0.8))
+# fig.add_trace(go.Scatter(
+#     x=AllData.Date,
+#     y=AllData['Sentiment Score'],
+#     name="Sentiment Score",
+#     line_color='red',
+#     opacity=0.8))
 
 fig.add_trace(go.Scatter(
     x=AllData.Date,
@@ -293,9 +293,6 @@ fig.add_trace(go.Scatter(
 
 # Use date string to set xaxis range
 fig.update_layout(xaxis_range=['2019-12-30', '2020-1-25'],
-                  title_text="Elon's Sentiment Score vs Stock Price, Likes, Retweets")
+                  title_text="Elon's Stock Price, Likes, Retweets")
 fig.show()
 
-
-
-# %%
