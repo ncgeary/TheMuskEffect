@@ -154,7 +154,7 @@ if __name__ == '__main__':
     # Elon Musk Twitter ID = 44196397
     musk_id = '44196397' 
 
-    tweets = api.user_timeline(id=musk_id, count=1000)
+    tweets = api.user_timeline(id=musk_id, count=1000000)
     
     fetched_tweets_filename = "tweets.json"
 
@@ -164,6 +164,7 @@ if __name__ == '__main__':
     df['Sentiment Result'] = np.array([tweet_analyzer.analyze_sentiment_result(tweet) for tweet in df['Tweet']])
 
     # client.close()
+df.describe()
 
 #%%
 time_likes = pd.Series(data=df['likes'].values, index=df['Date'])
@@ -296,3 +297,9 @@ fig.update_layout(xaxis_range=['2019-12-30', '2020-1-25'],
                   title_text="Elon's Stock Price, Likes, Retweets")
 fig.show()
 
+
+
+# %%
+AllData.head()
+
+# %%
