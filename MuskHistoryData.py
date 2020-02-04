@@ -68,6 +68,13 @@ mainData = mainData.drop(['has_media', 'img_urls', 'is_replied', 'is_reply_to',
                'timestamp_epochs', 'tweet_id', 'tweet_url', 'user_id', 
                'video_url'],axis=1)
 
+mainData['timestamp'] = mainData['timestamp'].dt.date
+
+mainData = mainData.groupby('timestamp').agg(
+    {'likes': 'sum', 'retweets': 'sum', 'replies':'sum','Sentiment Score': 'mean'})
+
+mainData.reset_index().head()
+
 # %%
 #normalizing data
 scaler = MinMaxScaler()
@@ -87,8 +94,18 @@ stockData = yf.download("TSLA", start="2019-1-1", end="2020-01-27")
 stockData.reset_index().head()
 stockData.head()
 
+#%%
 
-# %%
+#Joining Dataframes
+AllData = mainData.join(stockData, lsuffix='timestamp',
+                        rsuffix='Date').reset_index()
+                        
+
+AllData
+
+#need to figure out what to do on days with no tweets... you got this!!
+
+ # %%
 fig = go.Figure()
 
 fig.add_trace(go.Scatter(
@@ -127,7 +144,7 @@ fig.add_trace(go.Scatter(
     opacity=0.8))
 
 # Use date string to set xaxis range
-fig.update_layout(xaxis_range=['2019-4-1', '2020-1-25'],
+fig.update_layout(xaxis_range=['2019-1-1', '2020-1-25'],
                   title_text="Replys, Likes, & Retweets")
 fig.show()
 
