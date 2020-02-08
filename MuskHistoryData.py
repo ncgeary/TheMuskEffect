@@ -10,6 +10,10 @@ import os
 import re
 import json
 import datetime as dt
+import yfinance as yf
+import plotly
+import plotly.express as px
+import plotly.graph_objs as go
 
 
 #%%
@@ -21,132 +25,125 @@ import datetime as dt
 # https: // www.youtube.com/watch?v = zF_Q2v_9zKY
 
 user = 'elonmusk'
-limit = 1000
+limit = 10000
 
 tweets = ts.query_tweets_from_user(user=user, limit=limit)
 
 
-# %%
-df = pd.DataFrame(tweet.__dict__ for tweet in tweets)
+#%%
+class TweetAnalyzer():
+    """
+    Functionality for analyzing and categorizing content from tweets.
+    """
+    #clean tweets
+    def clean_tweet(self, tweet):
+        return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
+        
+    #creating sentimental score using TextBlob 
+    def analyze_sentiment_score(self, tweet):
+        analysis_score = TextBlob(self.clean_tweet(tweet))
+        analysis_score = analysis_score.sentiment.polarity
+        return analysis_score
+
+    #Determining positive vs negative tweets
+    def analyze_sentiment_result(self, tweet):
+
+        analysis_result = TextBlob(self.clean_tweet(tweet))
+
+        if analysis_result.sentiment.polarity >= 0.3:
+            return 'Positive'
+        elif analysis_result.sentiment.polarity <= -0.3:
+            return 'Negative'
+        else:
+            return '0'
+
+    def tweets_to_data_frame(self, tweets):
+        df2 = pd.DataFrame(
+            data=[tweet.timestamp for tweet in tweets], columns=['Date'])
+
+        df2['Tweet'] = np.array([tweet.text for tweet in tweets])
+        df2['Replied_Tweet'] = np.array([tweet.is_replied for tweet in tweets])
+        df2['Likes'] = np.array([tweet.likes for tweet in tweets])
+        df2['Reply_Count'] = np.array([tweet.replies for tweet in tweets])
+        df2['Retweets'] = np.array([tweet.retweets for tweet in tweets])
+
+        return df2
+
+#%%
+if __name__ == '__main__':
+    tweet_analyzer = TweetAnalyzer()
+
+    df2 = tweet_analyzer.tweets_to_data_frame(tweets)
+
+    df2['Sentiment Score'] = np.array(
+        [tweet_analyzer.analyze_sentiment_score(tweet) for tweet in df['Tweet']])
+    df2['Sentiment Result'] = np.array(
+        [tweet_analyzer.analyze_sentiment_result(tweet) for tweet in df['Tweet']])
+
+
+mainData = df2.copy()
+mainData.head()
+
 
 # %%
-#Sentimental Analysis Score
+# mainData['Tweet_Date'] = [d.date() for d in df['Date']]
+# mainData['Tweet_Time'] = [d.time() for d in df['Date']]
 
-def clean_tweet(self, tweet):
-        return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet.text).split())
 
-def analyze_sentiment_score(self, tweet):
-    analysis_score = TextBlob(self.clean_tweet(tweet.text))
-    analysis_score = analysis_score.sentiment.polarity
-    return analysis_score
-
-def analyze_sentiment_result(self, tweet):
-
-    analysis_result = TextBlob(self.clean_tweet(tweet.text))
-
-    if analysis_result.sentiment.polarity > 0:
-        return 'Positive'
-    elif analysis_result.sentiment.polarity == 0:
-        return '0'
+# %%
+# Truly determining what day the tweet will affect
+# Later than 4pm est then the tweet will affect the next day
+# Tweets during the day will affect the current day
+def checkDates(d):
+    if d.time().hour >= 16:
+        return d + pd.Timedelta(days=1)
     else:
-        return 'Negative'
+        return d
 
 
-df['Sentiment Score'] = np.array(
-    [tweet_analyzer.analyze_sentiment_score(tweet) for tweet in df['text']])
-df['Sentiment Result'] = np.array(
-    [tweet_analyzer.analyze_sentiment_result(tweet) for tweet in df['text']])
+mainData['Tweet_Date'] = mainData['Date'].apply(
+    lambda d: checkDates(pd.to_datetime(d))).dt.date
 
-df.head()
+mainData = mainData.set_index('Tweet_Date')
 
 
-# %%
-mainData = df.copy()
-mainData = mainData.drop(['has_media', 'img_urls', 'is_replied', 'is_reply_to',
-                'links', 'parent_tweet_id',  'reply_to_users',
-               'screen_name',  'text_html',
-               'timestamp_epochs', 'tweet_id', 'tweet_url', 'user_id', 
-               'video_url'],axis=1)
 
-mainData['timestamp'] = mainData['timestamp'].dt.date
+# mainData = mainData.groupby('timestamp').agg(
+#     {'likes': 'sum', 'retweets': 'sum', 'replies':'sum','Sentiment Score': 'mean'})
 
-mainData = mainData.groupby('timestamp').agg(
-    {'likes': 'sum', 'retweets': 'sum', 'replies':'sum','Sentiment Score': 'mean'})
-
-mainData.reset_index().head()
+# mainData.reset_index().head()
 
 # %%
 #normalizing data
 scaler = MinMaxScaler()
 
 mainData['SIZE_likes'] = scaler.fit_transform(
-    mainData['likes'].values.reshape(-1, 1))
+    mainData['Likes'].values.reshape(-1, 1))
 mainData['SIZE_retweets'] = scaler.fit_transform(
-    mainData['retweets'].values.reshape(-1, 1))
+    mainData['Retweets'].values.reshape(-1, 1))
 mainData['SIZE_replies'] = scaler.fit_transform(
-    mainData['replies'].values.reshape(-1, 1))
+    mainData['Reply_Count'].values.reshape(-1, 1))
 
-mainData.describe()
+mainData.info()
+
+
 
 # %%
 # Get the data of the stock Tesla Stock (TSLA)
-stockData = yf.download("TSLA", start="2019-1-1", end="2020-01-27")
+stockData = yf.download("TSLA", start="2019-4-1", end="2020-02-7")
 stockData.reset_index().head()
-stockData.head()
+
+stockData.info()
 
 #%%
 
 #Joining Dataframes
-AllData = mainData.join(stockData, lsuffix='timestamp',
-                        rsuffix='Date').reset_index()
+AllData = mainData.join(stockData, lsuffix='Tweet_Date',
+                        rsuffix='Date')
                         
 
-AllData
+AllData = AllData.drop(columns = ['Date','Tweet'])
 
-#need to figure out what to do on days with no tweets... you got this!!
-
- # %%
-fig = go.Figure()
-
-fig.add_trace(go.Scatter(
-    x=mainData.timestamp,
-    y=mainData['Sentiment Score'],
-    name="Sentiment Score",
-    line_color='red',
-    opacity=0.8))
-
-# fig.add_trace(go.Scatter(
-#     x=mainData.Date,
-#     y=mainData['SIZE_stock'],
-#     name="Stock Price",
-#     line_color='green',
-#     opacity=0.8))
-
-fig.add_trace(go.Scatter(
-    x=mainData.timestamp,
-    y=mainData['SIZE_likes'],
-    name="Likes",
-    line_color='blue',
-    opacity=0.8))
-
-fig.add_trace(go.Scatter(
-    x=mainData.timestamp	,
-    y=mainData['SIZE_retweets'],
-    name="Retweets",
-    line_color='grey',
-    opacity=0.8))
-
-fig.add_trace(go.Scatter(
-    x=mainData.timestamp	,
-    y=mainData['SIZE_replies'],
-    name="Replys",
-    line_color='green',
-    opacity=0.8))
-
-# Use date string to set xaxis range
-fig.update_layout(xaxis_range=['2019-1-1', '2020-1-25'],
-                  title_text="Replys, Likes, & Retweets")
-fig.show()
-
+AllData.head()
 
 # %%
