@@ -76,9 +76,9 @@ if __name__ == '__main__':
     df2 = tweet_analyzer.tweets_to_data_frame(tweets)
 
     df2['Sentiment Score'] = np.array(
-        [tweet_analyzer.analyze_sentiment_score(tweet) for tweet in df['Tweet']])
+        [tweet_analyzer.analyze_sentiment_score(tweet) for tweet in df2['Tweet']])
     df2['Sentiment Result'] = np.array(
-        [tweet_analyzer.analyze_sentiment_result(tweet) for tweet in df['Tweet']])
+        [tweet_analyzer.analyze_sentiment_result(tweet) for tweet in df2['Tweet']])
 
 
 mainData = df2.copy()
@@ -104,8 +104,14 @@ def checkDates(d):
 mainData['Tweet_Date'] = mainData['Date'].apply(
     lambda d: checkDates(pd.to_datetime(d))).dt.date
 
+mainData = mainData.groupby('Tweet_Date').agg(
+    {'Likes': 'mean', 'Retweets': 'mean', 'Reply_Count': 'mean', 'Sentiment Score': 'mean'})
+
+
 mainData = mainData.set_index('Tweet_Date')
 
+
+mainData.head()
 
 
 # mainData = mainData.groupby('timestamp').agg(
@@ -123,6 +129,7 @@ mainData['SIZE_retweets'] = scaler.fit_transform(
     mainData['Retweets'].values.reshape(-1, 1))
 mainData['SIZE_replies'] = scaler.fit_transform(
     mainData['Reply_Count'].values.reshape(-1, 1))
+
 
 mainData.info()
 
@@ -147,10 +154,18 @@ AllData = mainData.join(stockData, lsuffix='Tweet_Date',
 
 AllData = AllData.drop(columns = ['Date','Tweet'])
 
-AllData = AllData.reset_index()
+
+# AllData = AllData.drop(index='2017-04-21')
 
 AllData.head()
 
+#%%
+#Adding in moving average for likes, retweets, and replies
+
+AllData['MA_likes'] = AllData['SIZE_likes'].rolling(window=14).mean()
+
+
+AllData['MA_likes']
 
 
 # %%
@@ -158,14 +173,14 @@ fig = go.Figure()
 
 
 fig.add_trace(go.Scatter(
-    x=AllData.index,
+    x=AllData['index'],
     y=AllData['Sentiment Score'],
     name="Sentiment Score",
     line_color='red',
     opacity=0.8))
 
 fig.add_trace(go.Scatter(
-    x=AllData.index,
+    x=AllData['index'],
     y=AllData['SIZE_END_DAY_STOCK'],
     name="Stock Price",
     line_color='green',
@@ -173,23 +188,26 @@ fig.add_trace(go.Scatter(
 
 
 # fig.add_trace(go.Scatter(
-#     x=AllData.index,
+#     x=AllData['index'],
 #     y=AllData['SIZE_likes'],
 #     name="Likes",
 #     line_color='blue',
 #     opacity=0.8))
 
 # fig.add_trace(go.Scatter(
-#     x=AllData.index,
+#     x=AllData['index'],
 #     y=AllData['SIZE_retweets'],
 #     name="Retweets",
 #     line_color='grey',
 #     opacity=0.8))
 
 # Use date string to set xaxis range
-fig.update_layout(xaxis_range=['400', '550'],
-                  title_text="Elon's Stock Price, Likes, Retweets")
+fig.update_layout(xaxis_range=['2019-11-1', '2020-1-1'],
+                  title_text="Elon's Stock Price vs Sentiment")
 fig.show()
 
+
+# %%
+AllData['index']
 
 # %%
