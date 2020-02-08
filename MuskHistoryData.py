@@ -133,6 +133,9 @@ mainData.info()
 stockData = yf.download("TSLA", start="2019-4-1", end="2020-02-7")
 stockData.reset_index().head()
 
+stockData['SIZE_END_DAY_STOCK'] = scaler.fit_transform(
+    stockData['Close'].values.reshape(-1, 1))
+
 stockData.info()
 
 #%%
@@ -144,6 +147,49 @@ AllData = mainData.join(stockData, lsuffix='Tweet_Date',
 
 AllData = AllData.drop(columns = ['Date','Tweet'])
 
+AllData = AllData.reset_index()
+
 AllData.head()
+
+
+
+# %%
+fig = go.Figure()
+
+
+fig.add_trace(go.Scatter(
+    x=AllData.index,
+    y=AllData['Sentiment Score'],
+    name="Sentiment Score",
+    line_color='red',
+    opacity=0.8))
+
+fig.add_trace(go.Scatter(
+    x=AllData.index,
+    y=AllData['SIZE_END_DAY_STOCK'],
+    name="Stock Price",
+    line_color='green',
+    opacity=0.8))
+
+
+# fig.add_trace(go.Scatter(
+#     x=AllData.index,
+#     y=AllData['SIZE_likes'],
+#     name="Likes",
+#     line_color='blue',
+#     opacity=0.8))
+
+# fig.add_trace(go.Scatter(
+#     x=AllData.index,
+#     y=AllData['SIZE_retweets'],
+#     name="Retweets",
+#     line_color='grey',
+#     opacity=0.8))
+
+# Use date string to set xaxis range
+fig.update_layout(xaxis_range=['400', '550'],
+                  title_text="Elon's Stock Price, Likes, Retweets")
+fig.show()
+
 
 # %%
