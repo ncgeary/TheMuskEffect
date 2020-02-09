@@ -76,9 +76,9 @@ if __name__ == '__main__':
     df2 = tweet_analyzer.tweets_to_data_frame(tweets)
 
     df2['Sentiment Score'] = np.array(
-        [tweet_analyzer.analyze_sentiment_score(tweet) for tweet in df['Tweet']])
+        [tweet_analyzer.analyze_sentiment_score(tweet) for tweet in df2['Tweet']])
     df2['Sentiment Result'] = np.array(
-        [tweet_analyzer.analyze_sentiment_result(tweet) for tweet in df['Tweet']])
+        [tweet_analyzer.analyze_sentiment_result(tweet) for tweet in df2['Tweet']])
 
 
 mainData = df2.copy()
@@ -107,9 +107,8 @@ mainData['Tweet_Date'] = mainData['Date'].apply(
 mainData = mainData.set_index('Tweet_Date')
 
 
-
-# mainData = mainData.groupby('timestamp').agg(
-#     {'likes': 'sum', 'retweets': 'sum', 'replies':'sum','Sentiment Score': 'mean'})
+mainData = mainData.groupby('Tweet_Date').agg(
+    {'Likes': 'sum', 'Retweets': 'sum', 'Reply_Count': 'sum', 'Sentiment Score': 'mean'})
 
 # mainData.reset_index().head()
 
@@ -130,7 +129,7 @@ mainData.info()
 
 # %%
 # Get the data of the stock Tesla Stock (TSLA)
-stockData = yf.download("TSLA", start="2019-4-1", end="2020-02-7")
+stockData = yf.download("TSLA", start="2019-4-1", end="2020-02-9")
 stockData.reset_index().head()
 
 stockData['SIZE_END_DAY_STOCK'] = scaler.fit_transform(
@@ -145,7 +144,7 @@ AllData = mainData.join(stockData, lsuffix='Tweet_Date',
                         rsuffix='Date')
                         
 
-AllData = AllData.drop(columns = ['Date','Tweet'])
+# AllData = AllData.drop(columns = ['Date','Tweet'])
 
 AllData = AllData.reset_index()
 
@@ -187,9 +186,10 @@ fig.add_trace(go.Scatter(
 #     opacity=0.8))
 
 # Use date string to set xaxis range
-fig.update_layout(xaxis_range=['400', '550'],
+fig.update_layout(xaxis_range=['2019-12-1', '2020-2-1'],
                   title_text="Elon's Stock Price, Likes, Retweets")
 fig.show()
+
 
 
 # %%
