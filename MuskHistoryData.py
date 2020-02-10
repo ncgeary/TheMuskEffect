@@ -203,7 +203,7 @@ fig.add_trace(go.Scatter(
     x=AllData.index,
     y=AllData['SIZE_likes'],
     name="Likes",
-    line_color='blue',
+    line_color='light blue',
     opacity=0.8))
 
 fig.add_trace(go.Scatter(
@@ -269,9 +269,9 @@ fig.show()
 # %%
 # Running the Covarience between the major factors
 doggo = AllData[['SIZE_likes', 'SIZE_retweets',
-                 'SIZE_replies', 'SIZE_END_DAY_STOCK', 'SIZE_Sent']].copy()
+                 'SIZE_replies', 'SIZE_END_DAY_STOCK', 'Sentiment Score']].copy()
 
-doggo = doggo.cov()
+doggo = doggo.corr()
 
 doggo
 # %%
