@@ -104,23 +104,17 @@ def checkDates(d):
 mainData['Tweet_Date'] = mainData['Date'].apply(
     lambda d: checkDates(pd.to_datetime(d))).dt.date
 
-mainData = mainData.groupby('Tweet_Date').agg(
-    {'Likes': 'mean', 'Retweets': 'mean', 'Reply_Count': 'mean', 'Sentiment Score': 'mean'})
+
+# mainData = mainData.groupby('Tweet_Date').agg(
+#     {'Likes': 'mean', 'Retweets': 'mean', 'Reply_Count': 'mean', 'Sentiment Score': 'mean'})
 
 
-mainData = mainData.set_index('Tweet_Date')
+# mainData = mainData.set_index('Tweet_Date')
 
 
-<<<<<<< HEAD
+
 mainData = mainData.groupby('Tweet_Date').agg(
     {'Likes': 'sum', 'Retweets': 'sum', 'Reply_Count': 'sum', 'Sentiment Score': 'mean'})
-=======
-mainData.head()
-
-
-# mainData = mainData.groupby('timestamp').agg(
-#     {'likes': 'sum', 'retweets': 'sum', 'replies':'sum','Sentiment Score': 'mean'})
->>>>>>> b51ce16a1803844cd2efa36bbf3793726f1b6ad4
 
 # mainData.reset_index().head()
 
@@ -134,6 +128,8 @@ mainData['SIZE_retweets'] = scaler.fit_transform(
     mainData['Retweets'].values.reshape(-1, 1))
 mainData['SIZE_replies'] = scaler.fit_transform(
     mainData['Reply_Count'].values.reshape(-1, 1))
+mainData['SIZE_Sent'] = scaler.fit_transform(
+    mainData['Sentiment Score'].values.reshape(-1, 1))
 
 
 mainData.info()
@@ -170,7 +166,9 @@ AllData.head()
 AllData['MA_likes'] = AllData['SIZE_likes'].rolling(window=14).mean()
 
 
-AllData['MA_likes']
+AllData.head()
+
+
 
 
 # %%
@@ -178,14 +176,14 @@ fig = go.Figure()
 
 
 fig.add_trace(go.Scatter(
-    x=AllData['index'],
-    y=AllData['Sentiment Score'],
+    x=AllData.index,
+    y=AllData['SIZE_Sent'],
     name="Sentiment Score",
     line_color='red',
     opacity=0.8))
 
 fig.add_trace(go.Scatter(
-    x=AllData['index'],
+    x=AllData.index,
     y=AllData['SIZE_END_DAY_STOCK'],
     name="Stock Price",
     line_color='green',
@@ -207,18 +205,31 @@ fig.add_trace(go.Scatter(
 #     opacity=0.8))
 
 # Use date string to set xaxis range
-<<<<<<< HEAD
-fig.update_layout(xaxis_range=['2019-12-1', '2020-2-1'],
-                  title_text="Elon's Stock Price, Likes, Retweets")
-=======
 fig.update_layout(xaxis_range=['2019-11-1', '2020-1-1'],
                   title_text="Elon's Stock Price vs Sentiment")
->>>>>>> b51ce16a1803844cd2efa36bbf3793726f1b6ad4
 fig.show()
 
 
 
 # %%
-AllData['index']
+# Running the Covarience between the major factors
+doggo = AllData[['SIZE_likes', 'SIZE_retweets',
+                 'SIZE_replies', 'SIZE_END_DAY_STOCK', 'SIZE_Sent']].copy()
 
+doggo = doggo.cov()
+
+doggo
+# %%
+
+cdoggo = doggo.columns
+idoggo = doggo.index
+
+CovHeat = go.Figure(data=go.Heatmap(
+    z=doggo,
+    x=cdoggo,
+    y=idoggo    
+    ))
+
+
+CovHeat.show()
 # %%
