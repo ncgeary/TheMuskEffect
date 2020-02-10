@@ -164,23 +164,17 @@ AllData.head()
 #Adding in moving average for likes, retweets, and replies
 
 AllData['MA_likes'] = AllData['SIZE_likes'].rolling(window=14).mean()
+AllData['MA_replies'] = AllData['SIZE_replies'].rolling(window=14).mean()
+AllData['MA_retweets'] = AllData['SIZE_retweets'].rolling(window=14).mean()
+AllData['MA_Sent'] = AllData['Sentiment Score'].rolling(window=14).mean()
 
 
 AllData.head()
 
 
-
-
 # %%
+#Real Numbers
 fig = go.Figure()
-
-
-fig.add_trace(go.Scatter(
-    x=AllData.index,
-    y=AllData['SIZE_Sent'],
-    name="Sentiment Score",
-    line_color='red',
-    opacity=0.8))
 
 fig.add_trace(go.Scatter(
     x=AllData.index,
@@ -189,23 +183,84 @@ fig.add_trace(go.Scatter(
     line_color='green',
     opacity=0.8))
 
+fig.add_trace(go.Scatter(
+    x=AllData.index,
+    y=AllData['Sentiment Score'],
+    name="Sentiment Score",
+    line_color='red',
+    opacity=0.4))
 
-# fig.add_trace(go.Scatter(
-#     x=AllData['index'],
-#     y=AllData['SIZE_likes'],
-#     name="Likes",
-#     line_color='blue',
-#     opacity=0.8))
 
-# fig.add_trace(go.Scatter(
-#     x=AllData['index'],
-#     y=AllData['SIZE_retweets'],
-#     name="Retweets",
-#     line_color='grey',
-#     opacity=0.8))
+fig.add_trace(go.Scatter(
+    x=AllData.index,
+    y=AllData['SIZE_replies'],
+    name="Replies",
+    line_color='blue',
+    opacity=0.8))
+
+
+fig.add_trace(go.Scatter(
+    x=AllData.index,
+    y=AllData['SIZE_likes'],
+    name="Likes",
+    line_color='blue',
+    opacity=0.8))
+
+fig.add_trace(go.Scatter(
+    x=AllData.index,
+    y=AllData['SIZE_retweets'],
+    name="Retweets",
+    line_color='grey',
+    opacity=0.8))
+
 
 # Use date string to set xaxis range
-fig.update_layout(xaxis_range=['2019-11-1', '2020-1-1'],
+fig.update_layout(xaxis_range=['2019-4-1', '2020-1-1'],
+                  title_text="Elon's Stock Price vs Sentiment")
+fig.show()
+
+# %%
+# Moving Average Graph
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(
+    x=AllData.index,
+    y=AllData['SIZE_END_DAY_STOCK'],
+    name="Stock Price",
+    line_color='green',
+    opacity=0.8))
+
+fig.add_trace(go.Scatter(
+    x=AllData.index,
+    y=AllData['MA_Sent'],
+    name="Sentiment Score",
+    line_color='red',
+    opacity=0.4))
+
+fig.add_trace(go.Scatter(
+    x=AllData.index,
+    y=AllData['MA_replies'],
+    name="Replies",
+    line_color='light blue',
+    opacity=0.8))
+
+
+fig.add_trace(go.Scatter(
+    x=AllData.index,
+    y=AllData['MA_likes'],
+    name="Likes",
+    line_color='blue',
+    opacity=0.8))
+
+fig.add_trace(go.Scatter(
+    x=AllData.index,
+    y=AllData['MA_retweets'],
+    name="Retweets",
+    line_color='grey',
+    opacity=0.8))
+
+# Use date string to set xaxis range
+fig.update_layout(xaxis_range=['2019-4-1', '2020-1-1'],
                   title_text="Elon's Stock Price vs Sentiment")
 fig.show()
 
