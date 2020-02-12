@@ -136,6 +136,7 @@ mainData.info()
 
 
 
+
 # %%
 # Get the data of the stock Tesla Stock (TSLA)
 stockData = yf.download("TSLA", start="2019-4-1", end="2020-02-9")
